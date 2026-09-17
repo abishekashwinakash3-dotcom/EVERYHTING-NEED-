@@ -1,0 +1,33 @@
+# ── SECRETS — never commit ──
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.p12
+secrets.json
+credentials.json
+
+# ── Claude / agent local state ──
+.claude/settings.local.json
+.mcp.local.json
+
+# ── deps & builds ──
+node_modules/
+dist/
+build/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# ── OS noise ──
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── scratch ──
+*.log
+tmp/
+.scratch/

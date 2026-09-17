@@ -1,0 +1,60 @@
+{
+  "_comment": "Reference copy of the MCP servers install.sh configures. To apply manually: claude mcp add-json <name> '<json>' --scope user. Keyed servers need the matching var in .env.",
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "_why": "Pulls up-to-date, version-correct library docs into context. Kills hallucinated APIs."
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"],
+      "_why": "Claude drives a real browser: clicks, screenshots, checks its own front-end work."
+    },
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "fetcher-mcp"],
+      "_why": "Fetch any URL as clean markdown. No key."
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "_why": "Structured step-by-step reasoning for hard problems."
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "_why": "Persistent knowledge graph across sessions."
+    },
+    "exa": {
+      "command": "npx",
+      "args": ["-y", "exa-mcp-server"],
+      "env": { "EXA_API_KEY": "${EXA_API_KEY}" },
+      "_why": "Neural web search built for agents. Better than keyword search for research."
+    },
+    "tavily": {
+      "command": "npx",
+      "args": ["-y", "tavily-mcp"],
+      "env": { "TAVILY_API_KEY": "${TAVILY_API_KEY}" },
+      "_why": "LLM-optimised search with citations. Good for IB research + EE."
+    },
+    "firecrawl": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": { "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}" },
+      "_why": "Crawl whole sites into markdown."
+    },
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server-supabase@latest"],
+      "env": { "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}" },
+      "_why": "Claude manages your Postgres DB, migrations, and auth directly."
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp",
+      "_why": "Read/write issues, PRs, code across your repos. OAuth — run 'claude mcp login github' once.",
+      "_manual": true
+    }
+  }
+}
