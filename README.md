@@ -37,6 +37,10 @@ lot of the setup videos blur this line.
 | **Hooks** | ✅ scripted (`settings.json`) | ❌ doesn't exist there |
 | **API keys** | ✅ `.env` file | ❌ n/a |
 
+Skill sources fall back to upstream automatically, so `install.sh` works even
+before you've run `gh auth login` — it just tells you when it used the upstream
+instead of your fork.
+
 **There is no file on disk that configures claude.ai chat.** Chat config lives on
 Anthropic's servers, tied to your account. So `install.sh` gets Claude Code to 100%,
 and [docs/09-claude-chat-setup.md](docs/09-claude-chat-setup.md) is a click-by-click

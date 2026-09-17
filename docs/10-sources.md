@@ -15,7 +15,7 @@ names) were confirmed by shallow-cloning and reading the files, not guessed.
 | Your fork | [AIS-OS](https://github.com/abishekashwinakash3-dotcom/AIS-OS) | ✅ 6 skills in `.claude/skills` | [03](03-skills.md), `install.sh` |
 | Your fork | [hyperframes-student-kit](https://github.com/abishekashwinakash3-dotcom/hyperframes-student-kit) | ✅ 14 skills | [03](03-skills.md), `install.sh` |
 | Your fork | [SlopMonster](https://github.com/abishekashwinakash3-dotcom/SlopMonster) | ✅ root `SKILL.md`, single skill | [03](03-skills.md), `install.sh` |
-| Your fork | [scroll-craft](https://github.com/abishekashwinakash3-dotcom/scroll-craft) | ✅ marketplace `nateherk`, plugin `nateherk-design` | [04](04-plugins.md), `install.sh` |
+| Your fork | [scroll-craft](https://github.com/abishekashwinakash3-dotcom/scroll-craft) | ✅ marketplace `nateherk`, plugin `nateherk-design` — installed and enabled (via upstream fallback) | [04](04-plugins.md), `install.sh` |
 
 ---
 
@@ -36,6 +36,21 @@ and listed the strongest candidates. Where I'm inferring, I say so.
 **If a reel showed a specific repo I didn't name, paste the repo URL and I'll wire it in properly.**
 
 ---
+
+## Verified end-to-end
+
+Not just "the repo exists" — actually run:
+
+| Check | Result |
+|---|---|
+| ECC marketplace + plugin | installed, enabled, 68 agents / 292 skills loaded |
+| scroll-craft plugin | installed, enabled (upstream fallback, no `gh auth` needed) |
+| Skill bundles | 21 skills installed through the security gate |
+| MCP servers | 6 connected per `claude mcp list` |
+| Security gate blocks malware | purpose-built malicious skill → `CRITICAL` → blocked ✅ |
+| Security gate allows real skills | allowlisted `HIGH` false positives install with a note ✅ |
+| `doctor.sh` | clean; correctly flags 2 non-skill dirs |
+| `--dry-run --all` | exit 0, no side effects |
 
 ## Tools I added that you didn't ask for
 
