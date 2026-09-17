@@ -99,7 +99,15 @@ Restart Claude Code to load it.
 ## Updating / removing
 
 ```bash
-./install.sh --skills          # re-pull the bundles (old copies → .bak)
+./install.sh --skills          # re-pull bundles (old copies → ~/.claude/skill-backups/)
 rm -rf ~/.claude/skills/NAME   # remove one
 ls ~/.claude/skills/           # what do I have
+./scripts/doctor.sh            # flags duplicates and non-skill dirs
 ```
+
+Replaced versions go to `~/.claude/skill-backups/<timestamp>/`, **never** beside
+the original — anything with a `SKILL.md` inside `skills/` is loaded as a live
+skill, so a `.bak` sitting there would shadow-compete with the real one.
+
+If a bundle can't be cloned from your fork (no `gh auth login` yet), the
+installer falls back to the upstream repo automatically and tells you it did.

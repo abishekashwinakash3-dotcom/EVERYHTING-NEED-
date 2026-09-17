@@ -36,6 +36,14 @@ if [ -d "$CLAUDE_DIR/skills" ]; then
   n=$(find "$CLAUDE_DIR/skills" -maxdepth 1 -mindepth 1 -type d ! -name '*.bak' | wc -l | tr -d ' ')
   ok "$n skills installed"
   find "$CLAUDE_DIR/skills" -maxdepth 1 -mindepth 1 -type d ! -name '*.bak' -exec basename {} \; | sort | paste -sd' ' - | fold -s -w 76 | sed 's/^/      /'
+  stray=$(find "$CLAUDE_DIR/skills" -maxdepth 1 -mindepth 1 -type d -name '*.bak' 2>/dev/null | wc -l | tr -d ' ')
+  if [ "${stray:-0}" -gt 0 ]; then
+    no "$stray stale *.bak dirs in skills/ — these load as DUPLICATE skills"
+    printf '      fix: ./install.sh --skills   (migrates them out automatically)\n'
+  fi
+  nonskill=$(find "$CLAUDE_DIR/skills" -maxdepth 1 -mindepth 1 -type d ! -name '*.bak' \
+             '!' -exec test -f '{}/SKILL.md' ';' -print 2>/dev/null | wc -l | tr -d ' ')
+  [ "${nonskill:-0}" -gt 0 ] && mb "$nonskill dir(s) in skills/ have no SKILL.md (not skills, ignored)"
 else no "no skills dir — run ./install.sh --skills"; fi
 
 h "Plugins"
