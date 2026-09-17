@@ -123,4 +123,8 @@ If a reel showed a specific repo I didn't name, send me the repo URL and I'll wi
 
 ---
 
+> **Heads up on ECC:** it installs a hook that gates *every* Bash command, not just
+> risky ones. If Claude starts asking permission to run `ls`, that's why —
+> [docs/04](docs/04-plugins.md#eccs-gateguard-blocks-every-bash-command) has the fix.
+
 **License:** MIT for this kit. Each installed repo keeps its own license.

@@ -78,6 +78,31 @@ gh auth login              # docs/01
 This is why `install.sh` warns in preflight when `gh` isn't authenticated. The
 scroll-craft marketplace is one of your own forks, so it needs this; ECC doesn't.
 
+### ECC's GateGuard blocks every Bash command
+
+ECC ships a hook (`pre:bash:gateguard-fact-force`) that intercepts Bash calls and
+demands Claude state facts before running them. It fires on **routine, read-only
+commands**, not just destructive ones — during this kit's own setup it gated a
+`git fetch` and a `git merge`.
+
+It is a genuinely good idea for `rm -rf` and force-pushes. It is a tax on `ls`.
+Three levels of dialing it back:
+
+```bash
+# 1. Keep destructive checks, drop the routine-command gate (recommended)
+export GATEGUARD_BASH_ROUTINE_DISABLED=1
+
+# 2. Disable just that hook
+export ECC_DISABLED_HOOKS=pre:bash:gateguard-fact-force
+
+# 3. Turn GateGuard off entirely (not recommended)
+export ECC_GATEGUARD=off
+```
+
+Put your choice in `~/.zshrc` or `~/.bashrc` to make it stick. Start at level 1 —
+keeping the destructive-command gate is worth it, especially while you're learning
+git. Only go to level 3 if it's actively blocking repair work.
+
 ### Checking what actually landed
 
 ```bash
