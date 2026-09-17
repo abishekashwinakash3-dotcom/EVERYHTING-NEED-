@@ -60,6 +60,34 @@ claude plugin disable <name>                 # keep but turn off
 Scopes: `user` (everywhere — the default here), `project` (this repo, shared via
 git), `local` (this repo, just you).
 
+## Troubleshooting
+
+### "Failed to clone marketplace repository: HTTPS authentication failed"
+
+`claude plugin marketplace add` clones over HTTPS using your **git credential
+helper**. Public third-party repos (like ECC) clone anonymously and work
+immediately. **Your own repos — including public forks — often do not**, because
+git tries to authenticate as you and has no credentials to offer.
+
+Fix:
+```bash
+gh auth login              # docs/01
+./install.sh --plugins     # re-run
+```
+
+This is why `install.sh` warns in preflight when `gh` isn't authenticated. The
+scroll-craft marketplace is one of your own forks, so it needs this; ECC doesn't.
+
+### Checking what actually landed
+
+```bash
+claude plugin marketplace list   # sources
+claude plugin list               # installed plugins
+./scripts/doctor.sh              # everything at once
+```
+
+A plugin can be installed but not loaded until you **restart Claude Code**.
+
 ## Safety
 
 Installing a plugin runs its code on your machine as you. Before installing

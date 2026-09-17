@@ -18,7 +18,7 @@ called **Connectors**. Same protocol, different UI, configured separately.
 |---|---|---|
 | **context7** | Fetches current, version-correct docs for any library | The single best fix for hallucinated APIs. Claude stops inventing methods that don't exist. |
 | **playwright** | Drives a real browser — click, type, screenshot | Claude can *look at* the UI it just built and fix it. Essential for front-end. |
-| **fetch** | Any URL → clean markdown | Research without leaving the terminal. |
+| **fetch** | Any URL → clean markdown | Research without leaving the terminal. Needs [`uv`](https://docs.astral.sh/uv/); skipped automatically if absent. |
 | **sequential-thinking** | Structured multi-step reasoning | Helps on genuinely hard problems. |
 | **memory** | Persistent knowledge graph between sessions | Claude remembers your project across days. |
 
@@ -59,6 +59,23 @@ claude mcp login <name>      # OAuth
 
 **Scopes:** `user` = all your projects (what this kit uses) · `project` = written to
 `.mcp.json`, shared with anyone who clones the repo · `local` = this project, just you.
+
+## Troubleshooting
+
+**`claude mcp list` is the source of truth.** It health-checks every server. Run it
+after installing — a server can be *configured* and still not *work*.
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Failed to connect — CONNECTION_CLOSED` | The server process starts and dies. Usually a broken/wrong package. | Run its command by hand (`npx -y <pkg>`) and read the error. |
+| First health check fails, second passes | Cold `npx` download timed out | Re-run `claude mcp list`. If it fails twice, it's real. |
+| `fetch` missing after install | `uv` isn't installed | Install [uv](https://docs.astral.sh/uv/), re-run `./install.sh --mcp`. Playwright covers page fetching meanwhile. |
+| Keyed server skipped | Key not in `.env` | Add it, re-run `./install.sh --mcp` |
+
+> A note on `fetch`: this kit originally used the npm package `fetcher-mcp`. Testing
+> showed it fails to start (`CONNECTION_CLOSED`) even with a warm cache, so it was
+> replaced with the official Python server `uvx mcp-server-fetch`, which was verified
+> connecting. That's why `uv` is a dependency for this one server.
 
 ## Adding one you found
 

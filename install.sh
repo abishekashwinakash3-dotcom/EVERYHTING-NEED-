@@ -66,6 +66,14 @@ need claude "install: npm i -g @anthropic-ai/claude-code"
 if [ "$DO_MCP" = 1 ] || [ "$DO_SKILLS" = 1 ]; then
   need node "install Node 18+ from https://nodejs.org"
 fi
+if [ "$DO_PLUGINS" = 1 ]; then
+  if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+    ok "gh authenticated — private/own-fork marketplaces will clone"
+  else
+    warn "gh not authenticated — marketplaces from YOUR OWN repos will fail to clone"
+    say  "      run 'gh auth login' first if you want those (docs/01)"
+  fi
+fi
 if command -v node >/dev/null 2>&1; then
   NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)"
   if [ "${NODE_MAJOR:-0}" -lt 18 ]; then err "Node $NODE_MAJOR is too old — need 18+"; MISSING=1; fi
@@ -85,27 +93,47 @@ mkdir -p "$WORK_DIR" "$SKILLS_DIR"
 # ============================================================
 # PLUGINS
 # ============================================================
+auth_hint_shown=0
+gh_auth_hint() {
+  [ "$auth_hint_shown" = 1 ] && return 0
+  auth_hint_shown=1
+  warn "GitHub auth is needed to clone this source. Fix with:"
+  say  "        gh auth login          # then re-run: ./install.sh --plugins"
+  say  "      (see docs/01-github-local-sync.md)"
+}
+
 add_marketplace() {
-  local repo="$1" label="$2"
+  local repo="$1" label="$2" out rc
   step "marketplace: $label"
-  if run claude plugin marketplace add "$repo" >/dev/null 2>&1; then
-    ok "added $repo"; return 0
-  else
-    # already-added is a success, not a failure
-    if claude plugin marketplace list 2>/dev/null | grep -qi "$(basename "$repo")"; then
-      ok "$repo (already present)"; return 0
-    fi
-    err "could not add $repo"; FAILED+=("marketplace:$repo"); return 1
+  if [ "$DRY" = 1 ]; then printf '  %s[dry]%s claude plugin marketplace add %s\n' "$Y" "$N" "$repo"; return 0; fi
+
+  out="$(claude plugin marketplace add "$repo" 2>&1)"; rc=$?
+  # "already added" counts as success
+  if claude plugin marketplace list 2>/dev/null | grep -qi "$(basename "$repo")"; then
+    ok "$repo"; return 0
   fi
+
+  err "could not add $repo"
+  # Show the real reason instead of swallowing it
+  printf '%s\n' "$out" | grep -viE '^\s*$' | head -3 | sed 's/^/        /'
+  case "$out" in
+    *"authentication failed"*|*"could not read Username"*|*"Authentication failed"*|*"terminal prompts disabled"*)
+      gh_auth_hint ;;
+  esac
+  FAILED+=("marketplace:$repo"); return 1
 }
 
 install_plugin() {
-  local plugin="$1" label="$2"
+  local plugin="$1" label="$2" out
   step "plugin: $label"
-  if run claude plugin install "$plugin" --scope user -y >/dev/null 2>&1; then
+  if [ "$DRY" = 1 ]; then printf '  %s[dry]%s claude plugin install %s\n' "$Y" "$N" "$plugin"; return 0; fi
+
+  if out="$(claude plugin install "$plugin" --scope user -y 2>&1)"; then
     ok "installed $plugin"; INSTALLED+=("plugin:$plugin")
   else
-    err "failed $plugin — try interactively: claude plugin install $plugin"
+    err "failed $plugin"
+    printf '%s\n' "$out" | grep -viE '^\s*$' | head -3 | sed 's/^/        /'
+    say "        retry interactively: claude plugin install $plugin"
     FAILED+=("plugin:$plugin")
   fi
 }
@@ -240,7 +268,14 @@ if [ "$DO_MCP" = 1 ]; then
   # --- keyless ---
   add_mcp context7   NONE -- npx -y @upstash/context7-mcp
   add_mcp playwright NONE -- npx -y @playwright/mcp@latest
-  add_mcp fetch      NONE -- npx -y fetcher-mcp
+  # Official MCP fetch server (Python). Needs `uv` — the npm `fetcher-mcp`
+  # package was tested and fails to start (CONNECTION_CLOSED), so it is not used.
+  if command -v uvx >/dev/null 2>&1; then
+    add_mcp fetch NONE -- uvx mcp-server-fetch
+  else
+    SKIPPED+=("mcp:fetch (needs uv — https://docs.astral.sh/uv/)")
+    step "fetch — skipped, uv not installed (playwright covers page fetching)"
+  fi
   add_mcp sequential-thinking NONE -- npx -y @modelcontextprotocol/server-sequential-thinking
   add_mcp memory     NONE -- npx -y @modelcontextprotocol/server-memory
 
