@@ -111,3 +111,43 @@ skill, so a `.bak` sitting there would shadow-compete with the real one.
 
 If a bundle can't be cloned from your fork (no `gh auth login` yet), the
 installer falls back to the upstream repo automatically and tells you it did.
+
+## A second skill source: the Vercel `skills` CLI
+
+[vercel-labs/skills](https://github.com/vercel-labs/skills) is the official
+package manager for the broader open agent-skills ecosystem — the same tool
+behind [skills.sh](https://skills.sh/). It's a genuinely different mechanism
+from everything above, so it gets its own install step:
+
+```bash
+./install.sh --vercel-skills
+```
+
+**How it differs from the rest of this kit:**
+
+| | `install.sh --skills` (AIS-OS, HyperFrames, SlopMonster) | `install.sh --vercel-skills` |
+|---|---|---|
+| Install location | copied into `~/.claude/skills/<name>/` | symlinked from a universal `~/.agents/skills/<name>/`, shared across every agent it detects (Claude Code, Cursor, Codex, …) |
+| Security scan | every skill scanned by `claude-skill-antivirus` before it's placed — see [06](06-security.md) | **not scanned** — there's nothing to scan-then-copy, and scanning a live shared symlink after the fact wouldn't mean much. npm's own registry is the only trust boundary. |
+| In `--all`? | yes | **no, by design.** Folding it into `--all` would quietly break the guarantee that everything `--all` installs went through the scanner. Run it as its own explicit step so that stays true. |
+
+**What ships today:** `vercel-labs/skills@find-skills` — a meta-skill that
+teaches Claude how to search and recommend *other* skills from the ecosystem
+using `npx skills find` / `npx skills add`. Read before installing: pure
+instructional markdown, no scripts, no network calls beyond the documented
+`npx skills` commands.
+
+**Using the CLI directly**, once `find-skills` is installed — just ask Claude
+things like *"is there a skill for X"* and it'll search for you, or run it
+yourself:
+
+```bash
+npx skills find react performance      # search by keyword
+npx skills add owner/repo@skill-name   # install a specific one
+npx skills update                      # update everything installed this way
+```
+
+Same caution as anything in [06](06-security.md) applies harder here, since
+there's no scan step: check install counts and source reputation (`vercel-labs`,
+`anthropics` are more trustworthy than an unknown author) before installing
+something this CLI surfaces.

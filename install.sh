@@ -13,7 +13,7 @@ SCAN_DIR="$CLAUDE_DIR/skill-scans"
 # there that has a SKILL.md, so a "<name>.bak" would be a live duplicate skill.
 BACKUP_DIR="$CLAUDE_DIR/skill-backups"
 
-DO_PLUGINS=0; DO_SKILLS=0; DO_MCP=0; DRY=0; YES=0
+DO_PLUGINS=0; DO_SKILLS=0; DO_MCP=0; DO_VERCEL_SKILLS=0; DRY=0; YES=0
 FAILED=(); INSTALLED=(); SKIPPED=(); REVIEW=()
 
 # ---------- output ----------
@@ -31,14 +31,22 @@ usage() {
   cat <<USAGE
 EVERYTHING-NEED installer
 
-  ./install.sh --all         Install plugins + skills + MCP servers
-  ./install.sh --plugins     Claude Code plugin marketplaces only
-  ./install.sh --skills      Skill bundles only (security-scanned first)
-  ./install.sh --mcp         MCP servers only
+  ./install.sh --all           Install plugins + skills + MCP servers
+  ./install.sh --plugins       Claude Code plugin marketplaces only
+  ./install.sh --skills        Skill bundles only (security-scanned first)
+  ./install.sh --mcp           MCP servers only
+  ./install.sh --vercel-skills Skills via the official Vercel 'skills' CLI
+                                (npx skills). NOT part of --all: this
+                                installer symlinks from a universal
+                                ~/.agents/skills/ dir rather than copying,
+                                so it never goes through the security scan
+                                every other skill here does. Opt in
+                                explicitly. See docs/03-skills.md.
 
   --dry-run   Show what would happen, change nothing
   --yes       Don't prompt. HIGH/CRITICAL-risk skills are SKIPPED, never
               auto-installed — that decision always needs a human.
+              (Doesn't apply to --vercel-skills — see above.)
   --help      This message
 USAGE
 }
@@ -49,13 +57,14 @@ while [ $# -gt 0 ]; do
     --plugins) DO_PLUGINS=1 ;;
     --skills)  DO_SKILLS=1 ;;
     --mcp)     DO_MCP=1 ;;
+    --vercel-skills) DO_VERCEL_SKILLS=1 ;;
     --dry-run) DRY=1 ;;
     --yes|-y)  YES=1 ;;
     --help|-h) usage; exit 0 ;;
     *) err "Unknown option: $1"; usage; exit 2 ;;
   esac; shift
 done
-if [ $((DO_PLUGINS+DO_SKILLS+DO_MCP)) -eq 0 ]; then usage; exit 0; fi
+if [ $((DO_PLUGINS+DO_SKILLS+DO_MCP+DO_VERCEL_SKILLS)) -eq 0 ]; then usage; exit 0; fi
 
 cleanup() { [ -d "$WORK_DIR" ] && rm -rf "$WORK_DIR"; }
 trap cleanup EXIT
@@ -338,6 +347,51 @@ if [ "$DO_SKILLS" = 1 ]; then
     ".claude/skills" "HyperFrames (video/reels)"
   install_single_skill "abishekashwinakash3-dotcom/SlopMonster" "ItsssssJack/SlopMonster" \
     "SlopMonster (de-AI your writing)" "slopmonster"
+fi
+
+# ============================================================
+# VERCEL 'skills' CLI  (separate ecosystem — not security-scanned)
+# ============================================================
+# This installer (https://github.com/vercel-labs/skills) is the official
+# package manager for the broader open agent-skills ecosystem — a DIFFERENT
+# mechanism from install_skill_bundle/install_single_skill above. It installs
+# to a universal ~/.agents/skills/<name>/ and symlinks into every agent it
+# detects (Claude Code included), rather than copying into ~/.claude/skills/.
+# Because it's a symlink into a shared location, it CANNOT be routed through
+# gate_skill/claude-skill-antivirus the way the rest of this kit's skills are
+# — there is nothing to scan-then-copy, and scanning after the fact would
+# just be reading someone else's live, mutable install. npm's own registry
+# is the only trust boundary here. That's why this is its own opt-in flag,
+# never part of --all: silently blending an unscanned path into --all would
+# break the guarantee that "everything --all installs was scanned first".
+vercel_skills_add() {
+  # vercel_skills_add <owner/repo@skill> <label>
+  local pkg="$1" label="$2" out
+  step "$label ($pkg)"
+  if [ "$DRY" = 1 ]; then dry "npx skills add $pkg -g -y"; return 0; fi
+
+  out="$(npx -y skills add "$pkg" -g -y 2>&1)"
+  # The CLI addresses by skill name after '@', not the repo basename.
+  local sname="${pkg##*@}"
+  local link="$HOME/.claude/skills/$sname"
+
+  if [ -L "$link" ] && [ -f "$link/SKILL.md" ]; then
+    ok "$sname → $(readlink -f "$link")"
+    INSTALLED+=("vercel-skill:$sname")
+  else
+    err "$label did not produce a working Claude Code symlink"
+    printf '%s\n' "$out" | tail -5 | sed 's/^/        /'
+    FAILED+=("vercel-skill:$pkg")
+  fi
+}
+
+if [ "$DO_VERCEL_SKILLS" = 1 ]; then
+  head_ "Vercel skills CLI"
+  if ! command -v npx >/dev/null 2>&1; then
+    err "npx required (install Node 18+)"; FAILED+=("vercel-skills:npx-missing")
+  else
+    vercel_skills_add "vercel-labs/skills@find-skills" "find-skills (discover & install other skills)"
+  fi
 fi
 
 # ============================================================

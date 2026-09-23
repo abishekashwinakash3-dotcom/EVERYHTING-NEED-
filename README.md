@@ -105,6 +105,7 @@ See [docs/06-security.md](docs/06-security.md).
 ./install.sh --plugins        # plugins only
 ./install.sh --skills         # skills only
 ./install.sh --mcp            # MCP servers only
+./install.sh --vercel-skills  # skills via the Vercel CLI (opt-in, unscanned — docs/03)
 ./install.sh --dry-run --all  # print, change nothing
 ./scripts/doctor.sh           # what's installed / what's broken
 ./scripts/scan-skills.sh      # security-scan installed skills
