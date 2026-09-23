@@ -21,6 +21,7 @@ called **Connectors**. Same protocol, different UI, configured separately.
 | **fetch** | Any URL → clean markdown | Research without leaving the terminal. Needs [`uv`](https://docs.astral.sh/uv/); skipped automatically if absent. |
 | **sequential-thinking** | Structured multi-step reasoning | Helps on genuinely hard problems. |
 | **memory** | Persistent knowledge graph between sessions | Claude remembers your project across days. |
+| **findskills** | Searches a 93,000+ entry directory of agent skills (`search_skills`, `list_skills`, `get_skill`, `get_stats`, `list_tags`) | Discover skills for a new task before writing one from scratch. Pinned to `findskills-mcp@0.1.23` — see the note below. |
 
 ### Needs a free key — activate by filling `.env`
 
@@ -76,6 +77,15 @@ after installing — a server can be *configured* and still not *work*.
 > showed it fails to start (`CONNECTION_CLOSED`) even with a warm cache, so it was
 > replaced with the official Python server `uvx mcp-server-fetch`, which was verified
 > connecting. That's why `uv` is a dependency for this one server.
+
+> A note on `findskills`: `findskills-mcp@latest` (currently `0.1.25`) is broken —
+> its `api.js` imports `./lib/auth-error.js`, a file the maintainer's own
+> `package.json` `"files"` allowlist never ships, so every fresh install crashes
+> with `ERR_MODULE_NOT_FOUND`. Confirmed by unpacking the actual npm tarball, not
+> just from the connection error. `0.1.23` predates that import and was verified
+> starting cleanly and answering `tools/list` over the raw MCP protocol, so this
+> kit pins to it explicitly rather than tracking `@latest`. Worth re-checking
+> upstream occasionally — this is a one-line fix on the maintainer's end.
 
 ## Adding one you found
 

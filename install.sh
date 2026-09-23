@@ -389,6 +389,15 @@ if [ "$DO_MCP" = 1 ]; then
   add_mcp firecrawl  FIRECRAWL_API_KEY -e "FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY:-}" -- npx -y firecrawl-mcp
   add_mcp supabase   SUPABASE_ACCESS_TOKEN -e "SUPABASE_ACCESS_TOKEN=${SUPABASE_ACCESS_TOKEN:-}" -- npx -y @supabase/mcp-server-supabase@latest
 
+  # Searches the FindSkills directory (93,000+ agent skills). Pinned to 0.1.23,
+  # NOT @latest: 0.1.24/0.1.25 ship api.js importing ./lib/auth-error.js, a file
+  # the maintainer's own package.json "files" allowlist never includes in the
+  # published tarball, so every install of those versions crashes with
+  # ERR_MODULE_NOT_FOUND (confirmed by unpacking the npm tarball directly).
+  # 0.1.23 has no such import and was smoke-tested to start and answer
+  # tools/list cleanly. Revisit the pin once upstream fixes the publish.
+  add_mcp findskills NONE -- npx -y findskills-mcp@0.1.23
+
   say ""
   step "GitHub MCP is an OAuth connector — run once, interactively:"
   say "      claude mcp add --transport http github https://api.githubcopilot.com/mcp"

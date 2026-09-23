@@ -41,6 +41,15 @@
       ],
       "_why": "Persistent knowledge graph across sessions."
     },
+    "findskills": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "findskills-mcp@0.1.23"
+      ],
+      "_why": "Searches a 93,000+ entry directory of agent skills (search_skills, list_skills, get_skill, get_stats, list_tags).",
+      "_note": "Pinned to 0.1.23, NOT @latest. 0.1.24/0.1.25 ship api.js importing ./lib/auth-error.js, a file the maintainer's own package.json 'files' allowlist never includes in the published tarball -- every install of those versions crashes with ERR_MODULE_NOT_FOUND. Confirmed by unpacking the npm tarball. 0.1.23 predates the import and was verified starting and answering tools/list cleanly."
+    },
     "exa": {
       "command": "npx",
       "args": [
