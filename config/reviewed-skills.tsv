@@ -1,0 +1,17 @@
+# Skills reviewed by hand, with the maximum scanner verdict accepted for each.
+#
+# The scanner is a pattern matcher and flags legitimate behaviour. Each entry
+# below was traced to the actual source line before being listed. If a skill
+# ever scans ABOVE its accepted level here, the installer blocks it anyway.
+#
+# Anything NOT listed here is gated strictly: HIGH/CRITICAL/SCAN_FAILED is
+# blocked under --yes and prompts interactively.
+#
+# Format:  skill-name <TAB> max-accepted <TAB> evidence
+#
+edit-video	HIGH	"Read+Send" is the skill's function (reads media, calls render/transcribe tooling). "Kubernetes namespace" matched inside a minified JS bundle, not real config.
+cut-silences	HIGH	Same ffmpeg/transcript pipeline as edit-video. Verified: no kube-system/kube-public string exists anywhere in the skill.
+short-form-video	HIGH	Same video pipeline. Read+Send and loop-network are the documented behaviour.
+session-start-hook	HIGH	Startup hook; reads repo state and calls package managers. Read+Send is inherent.
+hyperframes-registry	HIGH	"URL shortener" is a false positive. Verified outbound hosts are only cdn.jsdelivr.net, github.com, raw.githubusercontent.com and hyperframes.heygen.com.
+level-up	SCAN_FAILED	Scanner crashes (TypeError in parseSkillMetadata) on this file's markdown horizontal rule. Frontmatter is valid YAML; SKILL.md reviewed by hand and contains no executable payload.
